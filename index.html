@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HEATER — NBA Streak Prediction Game</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0a0a0a;color:#fff;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;min-height:100vh}
+.app{max-width:600px;margin:0 auto;padding:0 16px}
+.header{padding:24px 0 16px;text-align:center}
+.logo{font-size:32px;font-weight:900;letter-spacing:-1px;background:linear-gradient(135deg,#ff6b1a,#ffaa00);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.subtitle{font-size:13px;color:#888;margin-top:2px}
+.filters{display:flex;gap:6px;overflow-x:auto;padding-bottom:12px;margin-bottom:4px}
+.filter-btn{padding:6px 14px;border-radius:20px;border:1px solid rgba(255,255,255,0.1);background:transparent;color:#888;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;transition:all 0.15s}
+.filter-btn.active{border-color:#ffaa00;background:rgba(255,170,0,0.15);color:#ffaa00}
+.sorts{display:flex;gap:6px;margin-bottom:16px}
+.sort-btn{padding:4px 10px;border-radius:6px;border:none;background:transparent;color:#666;font-size:11px;cursor:pointer;transition:all 0.15s}
+.sort-btn.active{background:rgba(255,255,255,0.1);color:#fff}
+.cards{display:flex;flex-direction:column;gap:12px;padding-bottom:24px}
+.card{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:16px;transition:all 0.2s}
+.card.picked{background:rgba(255,255,255,0.06)}
+.card-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px}
+.player-name{font-size:18px;font-weight:700}
+.heat-badge{font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;display:inline-block;margin-left:8px}
+.player-meta{font-size:13px;color:#aaa;margin-top:4px}
+.streak-num{font-size:28px;font-weight:800;text-align:right}
+.streak-label{font-size:10px;color:#888;text-transform:uppercase;letter-spacing:1px;text-align:right}
+.stats-row{display:flex;align-items:center;gap:16px;padding:10px 12px;background:rgba(0,0,0,0.3);border-radius:8px;margin-bottom:12px}
+.stat{flex:1}
+.stat-label{font-size:11px;color:#888;margin-bottom:2px}
+.stat-val{font-size:16px;font-weight:700}
+.divider{border-left:1px solid rgba(255,255,255,0.1);height:30px}
+.details-toggle{cursor:pointer;font-size:12px;color:#888;margin-bottom:0;padding:4px 0}
+.details-panel{padding:10px 12px;background:rgba(0,0,0,0.2);border-radius:8px;margin:10px 0 12px}
+.details-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:8px}
+.details-grid .stat-label{font-size:10px}
+.details-grid .stat-val{font-size:14px;font-weight:600}
+.rationale{font-size:12px;color:#aaa;font-style:italic}
+.pick-btns{display:flex;gap:8px}
+.pick-btn{flex:1;padding:10px 0;border-radius:8px;border:none;cursor:pointer;font-size:14px;font-weight:700;transition:all 0.15s}
+.pick-yes{background:rgba(34,197,94,0.15);color:#22c55e}
+.pick-yes.selected{background:#22c55e;color:#000}
+.pick-no{background:rgba(239,68,68,0.15);color:#ef4444}
+.pick-no.selected{background:#ef4444;color:#fff}
+.slip{position:fixed;bottom:0;left:0;right:0;background:linear-gradient(180deg,transparent,#0a0a0a 20%);padding:20px 16px 16px;display:none;z-index:100}
+.slip.show{display:block}
+.slip-inner{max-width:600px;margin:0 auto;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:12px;padding:16px}
+.slip-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.slip-title{font-size:14px;font-weight:700}
+.slip-clear{background:none;border:none;color:#888;font-size:12px;cursor:pointer}
+.slip-item{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.05)}
+.slip-item-name{font-size:13px;color:#ccc}
+.slip-item-dir{font-size:12px;font-weight:600}
+.slip-item-remove{background:none;border:none;color:#666;cursor:pointer;font-size:14px;margin-left:8px}
+.slip-footer{display:flex;justify-content:space-between;align-items:center;margin-top:12px;padding:12px 16px;background:rgba(255,170,0,0.1);border-radius:8px;border:1px solid rgba(255,170,0,0.2)}
+.payout-label{font-size:12px;color:#888}
+.payout-val{font-size:22px;font-weight:800;color:#ffaa00}
+.lock-btn{background:linear-gradient(135deg,#ffaa00,#ff6b1a);border:none;border-radius:8px;padding:10px 24px;font-size:15px;font-weight:700;color:#000;cursor:pointer}
+.empty{text-align:center;padding:40px;color:#666}
+</style>
+</head>
+<body>
+<div class="app" id="app"></div>
+
+<script>
+const STREAKS = [
+  {id:1,player:"Nikola Jokić",team:"DEN",opp:"TOR",prop:"PRA",threshold:45,streak:7,line:50.5,avgDuring:54.2,seasonAvg:51.3,oppDefRtg:112.1,oppPace:99.1,homeAway:"Away",lastGames:[52,48,61,55,49,53,47],rationale:"Elite usage + triple-double machine. TOR allows 4th most PRA to centers."},
+  {id:2,player:"Jalen Brunson",team:"NYK",opp:"BKN",prop:"PTS",threshold:25,streak:5,line:36.5,avgDuring:31.4,seasonAvg:28.7,oppDefRtg:118.2,oppPace:97.2,homeAway:"Home",lastGames:[34,28,29,33,31],rationale:"BKN bottom 5 defense. Brunson averages 33 PTS in last 3 vs BKN."},
+  {id:3,player:"Anthony Edwards",team:"MIN",opp:"POR",prop:"PTS",threshold:28,streak:4,line:29.5,avgDuring:33.8,seasonAvg:27.2,oppDefRtg:114.7,oppPace:102.0,homeAway:"Away",lastGames:[35,29,38,31],rationale:"POR allows 3rd most points to SGs. Edwards in aggressive mode L5."},
+  {id:4,player:"Cade Cunningham",team:"DET",opp:"GSW",prop:"PRA",threshold:35,streak:6,line:40,avgDuring:42.1,seasonAvg:38.5,oppDefRtg:113.4,oppPace:100.3,homeAway:"Home",lastGames:[44,38,41,45,39,43],rationale:"High usage rate + GSW mid-tier defense. Cade's L5 PRA trending up."},
+  {id:5,player:"Jaylen Brown",team:"BOS",opp:"MEM",prop:"PTS",threshold:22,streak:8,line:25.5,avgDuring:27.3,seasonAvg:24.1,oppDefRtg:116.7,oppPace:101.5,homeAway:"Away",lastGames:[25,28,23,30,24,26,29,25],rationale:"MEM weak perimeter D. Brown consistent scorer, rarely dips below 22."},
+  {id:6,player:"Jalen Johnson",team:"HOU",opp:"ATL",prop:"REB",threshold:8,streak:3,line:10.5,avgDuring:11.2,seasonAvg:9.8,oppDefRtg:112.5,oppPace:103.2,homeAway:"Home",lastGames:[12,9,11],rationale:"ATL allows most rebounds to PFs. Johnson's minutes trending up."},
+  {id:7,player:"Kevin Durant",team:"HOU",opp:"ATL",prop:"PTS",threshold:24,streak:5,line:24.5,avgDuring:28.4,seasonAvg:26.8,oppDefRtg:112.5,oppPace:103.2,homeAway:"Home",lastGames:[27,30,25,26,29],rationale:"Consistent elite scorer. ATL defense exploitable at every level."}
+];
+
+let picks = {};
+let filter = "all";
+let sortBy = "streak";
+let expandedCards = {};
+
+function getMultiplier(s){if(s>=8)return 3.5;if(s>=6)return 2.8;if(s>=5)return 2.2;if(s>=4)return 1.8;return 1.4}
+
+function getHeat(s){
+  if(s>=8)return{label:"INFERNO",color:"#ff2d2d",emoji:"🔥🔥🔥",bg:"rgba(255,45,45,0.12)"};
+  if(s>=6)return{label:"ON FIRE",color:"#ff6b1a",emoji:"🔥🔥",bg:"rgba(255,107,26,0.10)"};
+  if(s>=4)return{label:"HEATING UP",color:"#ffaa00",emoji:"🔥",bg:"rgba(255,170,0,0.08)"};
+  return{label:"WARM",color:"#ffd966",emoji:"♨️",bg:"rgba(255,217,102,0.06)"}
+}
+
+function miniChart(games,threshold){
+  const max=Math.max(...games,threshold+5);const w=100;const h=36;const gap=2;
+  const barW=(w-gap*(games.length-1))/games.length;
+  const threshY=h-(threshold/max)*h;
+  let svg=`<svg width="${w}" height="${h}" style="display:block">`;
+  games.forEach((g,i)=>{
+    const barH=(g/max)*h;const hit=g>=threshold;
+    svg+=`<rect x="${i*(barW+gap)}" y="${h-barH}" width="${barW}" height="${barH}" rx="2" fill="${hit?'#22c55e':'#ef4444'}" opacity="0.85"/>`;
+  });
+  svg+=`<line x1="0" y1="${threshY}" x2="${w}" y2="${threshY}" stroke="#ffd966" stroke-width="1.5" stroke-dasharray="3,2"/>`;
+  svg+=`</svg>`;return svg;
+}
+
+function defColor(rtg){return rtg>114?'#ef4444':rtg>112?'#ffaa00':'#22c55e'}
+
+function render(){
+  let data=[...STREAKS];
+  if(filter==="smash")data=data.filter(s=>s.streak>=6);
+  if(filter==="pts")data=data.filter(s=>s.prop==="PTS");
+  if(filter==="pra")data=data.filter(s=>s.prop==="PRA");
+  if(filter==="reb")data=data.filter(s=>s.prop==="REB");
+  if(sortBy==="streak")data.sort((a,b)=>b.streak-a.streak);
+  if(sortBy==="multiplier")data.sort((a,b)=>getMultiplier(b.streak)-getMultiplier(a.streak));
+  if(sortBy==="matchup")data.sort((a,b)=>b.oppDefRtg-a.oppDefRtg);
+
+  const filters=[{k:"all",l:"All Streaks"},{k:"smash",l:"🔥 6+ Games"},{k:"pts",l:"PTS"},{k:"pra",l:"PRA"},{k:"reb",l:"REB"}];
+  const sorts=[{k:"streak",l:"Streak Length"},{k:"multiplier",l:"Payout"},{k:"matchup",l:"Weak Defense"}];
+
+  let h=`<div class="header"><div class="logo">HEATER</div><div class="subtitle">Ride the streak or call the cold</div></div>`;
+  h+=`<div class="filters">${filters.map(f=>`<button class="filter-btn${filter===f.k?' active':''}" onclick="setFilter('${f.k}')">${f.l}</button>`).join('')}</div>`;
+  h+=`<div class="sorts">${sorts.map(s=>`<button class="sort-btn${sortBy===s.k?' active':''}" onclick="setSort('${s.k}')">↕ ${s.l}</button>`).join('')}</div>`;
+
+  if(data.length===0){
+    h+=`<div class="empty">No active streaks match this filter</div>`;
+  } else {
+    h+=`<div class="cards">${data.map(s=>{
+      const heat=getHeat(s.streak);const mult=getMultiplier(s.streak);const p=picks[s.id];const exp=expandedCards[s.id];
+      return`<div class="card${p?' picked':''}" style="${p?`border-color:${heat.color}`:''}">
+        <div class="card-top">
+          <div style="flex:1">
+            <div><span class="player-name">${s.player}</span><span class="heat-badge" style="background:${heat.bg};color:${heat.color};border:1px solid ${heat.color}40">${heat.emoji} ${heat.label}</span></div>
+            <div class="player-meta">${s.team} ${s.homeAway==='Home'?'vs':'@'} ${s.opp} · ${s.prop} · ${s.homeAway}</div>
+          </div>
+          <div><div class="streak-num" style="color:${heat.color}">${s.streak}</div><div class="streak-label">game streak</div></div>
+        </div>
+        <div class="stats-row">
+          <div class="stat"><div class="stat-label">Threshold</div><div class="stat-val" style="color:#ffd966">${s.prop} ≥ ${s.threshold}</div></div>
+          <div class="divider"></div>
+          <div class="stat"><div class="stat-label">Streak Avg</div><div class="stat-val" style="color:#22c55e">${s.avgDuring}</div></div>
+          <div class="divider"></div>
+          <div class="stat"><div class="stat-label">Season Avg</div><div class="stat-val" style="color:#ccc">${s.seasonAvg}</div></div>
+          <div class="divider"></div>
+          <div>${miniChart(s.lastGames,s.threshold)}</div>
+        </div>
+        <div class="details-toggle" onclick="toggleDetails(${s.id})">${exp?'▾ Hide Details':'▸ Matchup Details'}</div>
+        ${exp?`<div class="details-panel">
+          <div class="details-grid">
+            <div><div class="stat-label">Opp Def Rtg</div><div class="stat-val" style="color:${defColor(s.oppDefRtg)}">${s.oppDefRtg}</div></div>
+            <div><div class="stat-label">Opp Pace</div><div class="stat-val" style="color:#ccc">${s.oppPace}</div></div>
+            <div><div class="stat-label">Line</div><div class="stat-val" style="color:#ccc">${s.line}</div></div>
+          </div>
+          <div class="rationale">"${s.rationale}"</div>
+        </div>`:''}
+        <div class="pick-btns">
+          <button class="pick-btn pick-yes${p==='yes'?' selected':''}" onclick="makePick(${s.id},'yes')">🔥 KEEPS ROLLING · ${mult}x</button>
+          <button class="pick-btn pick-no${p==='no'?' selected':''}" onclick="makePick(${s.id},'no')">❄️ STREAK ENDS · ${(mult*0.6).toFixed(1)}x</button>
+        </div>
+      </div>`;
+    }).join('')}</div>`;
+  }
+
+  // Slip
+  const entries=Object.entries(picks);
+  if(entries.length>0){
+    const totalMult=entries.reduce((acc,[id,dir])=>{
+      const s=STREAKS.find(x=>x.id===Number(id));
+      const m=dir==='yes'?getMultiplier(s.streak):getMultiplier(s.streak)*0.6;
+      return acc*m;
+    },1);
+    h+=`<div style="height:200px"></div>`;
+    document.getElementById('slip').className='slip show';
+    document.getElementById('slip').innerHTML=`<div class="slip-inner">
+      <div class="slip-header"><span class="slip-title">YOUR SLIP · ${entries.length} pick${entries.length>1?'s':''}</span><button class="slip-clear" onclick="clearPicks()">Clear All</button></div>
+      ${entries.map(([id,dir])=>{
+        const s=STREAKS.find(x=>x.id===Number(id));
+        return`<div class="slip-item">
+          <span class="slip-item-name">${s.player} · ${s.prop} ${s.threshold}+ streak</span>
+          <div style="display:flex;align-items:center">
+            <span class="slip-item-dir" style="color:${dir==='yes'?'#22c55e':'#ef4444'}">${dir==='yes'?'🔥 Rolls':'❄️ Ends'}</span>
+            <button class="slip-item-remove" onclick="removePick(${id})">✕</button>
+          </div>
+        </div>`;
+      }).join('')}
+      <div class="slip-footer">
+        <div><div class="payout-label">Combined Payout</div><div class="payout-val">${totalMult.toFixed(1)}x</div></div>
+        <button class="lock-btn" onclick="lockIn()">LOCK IT IN 🔒</button>
+      </div>
+    </div>`;
+  } else {
+    document.getElementById('slip').className='slip';
+    document.getElementById('slip').innerHTML='';
+  }
+
+  document.getElementById('app').innerHTML=h;
+}
+
+function setFilter(f){filter=f;render()}
+function setSort(s){sortBy=s;render()}
+function toggleDetails(id){expandedCards[id]=!expandedCards[id];render()}
+function makePick(id,dir){if(picks[id]===dir)delete picks[id];else picks[id]=dir;render()}
+function removePick(id){delete picks[id];render()}
+function clearPicks(){picks={};render()}
+function lockIn(){
+  const count=Object.keys(picks).length;
+  alert(`🔒 ${count} pick${count>1?'s':''} locked! This is a prototype — in production this would submit your entry.`);
+}
+
+// Init
+document.body.insertAdjacentHTML('beforeend','<div id="slip" class="slip"></div>');
+render();
+</script>
+</body>
+</html>
