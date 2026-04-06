@@ -3,210 +3,421 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>HEATER — NBA Streak Prediction Game</title>
+<title>HEATER — MLB Streak Prediction Game</title>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
+/* ── Reset ── */
 *{margin:0;padding:0;box-sizing:border-box}
-body{background:#0a0a0a;color:#fff;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;min-height:100vh}
-.app{max-width:600px;margin:0 auto;padding:0 16px}
-.header{padding:24px 0 16px;text-align:center}
-.logo{font-size:32px;font-weight:900;letter-spacing:-1px;background:linear-gradient(135deg,#ff6b1a,#ffaa00);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-.subtitle{font-size:13px;color:#888;margin-top:2px}
-.filters{display:flex;gap:6px;overflow-x:auto;padding-bottom:12px;margin-bottom:4px}
-.filter-btn{padding:6px 14px;border-radius:20px;border:1px solid rgba(255,255,255,0.1);background:transparent;color:#888;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;transition:all 0.15s}
-.filter-btn.active{border-color:#ffaa00;background:rgba(255,170,0,0.15);color:#ffaa00}
+input,button,textarea,select{font:inherit}
+body{background:#0c0c10;color:#f0ece4;font-family:'Source Sans 3',sans-serif;min-height:100vh}
+
+/* ── Layout ── */
+.app{max-width:620px;margin:0 auto;padding:0 16px;transition:padding-bottom 0.25s}
+.app.has-slip{padding-bottom:220px}
+
+/* ── Header ── */
+header{padding:28px 0 18px;text-align:center;position:relative}
+header::after{content:'';display:block;width:60px;height:3px;background:linear-gradient(90deg,#c8102e,#ffaa00);margin:10px auto 0;border-radius:2px}
+.logo{font-family:'Oswald',sans-serif;font-size:38px;font-weight:700;letter-spacing:2px;background:linear-gradient(135deg,#c8102e,#ff6b35,#ffaa00);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.subtitle{font-size:13px;color:#8a857e;margin-top:2px;letter-spacing:0.5px;font-weight:600;text-transform:uppercase}
+
+/* ── Filters & Sorts ── */
+nav.filters{display:flex;gap:6px;overflow-x:auto;padding-bottom:12px;margin-bottom:4px;scrollbar-width:none}
+nav.filters::-webkit-scrollbar{display:none}
+.filter-btn{padding:7px 14px;border-radius:20px;border:1px solid rgba(255,255,255,0.08);background:transparent;color:#8a857e;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;transition:all 0.2s;text-transform:uppercase;letter-spacing:0.5px}
+.filter-btn[aria-pressed="true"]{border-color:#c8102e;background:rgba(200,16,46,0.12);color:#ff6b35}
 .sorts{display:flex;gap:6px;margin-bottom:16px}
-.sort-btn{padding:4px 10px;border-radius:6px;border:none;background:transparent;color:#666;font-size:11px;cursor:pointer;transition:all 0.15s}
-.sort-btn.active{background:rgba(255,255,255,0.1);color:#fff}
-.cards{display:flex;flex-direction:column;gap:12px;padding-bottom:24px}
-.card{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:16px;transition:all 0.2s}
-.card.picked{background:rgba(255,255,255,0.06)}
+.sort-btn{padding:5px 10px;border-radius:6px;border:none;background:transparent;color:#6b6760;font-size:11px;cursor:pointer;transition:all 0.15s;font-weight:600}
+.sort-btn[aria-pressed="true"]{background:rgba(255,255,255,0.08);color:#f0ece4}
+
+/* ── Cards ── */
+main.cards{display:flex;flex-direction:column;gap:14px;padding-bottom:24px}
+.card{background:rgba(255,255,255,0.025);border:1px solid rgba(255,255,255,0.06);border-radius:14px;padding:16px;transition:all 0.25s;position:relative;overflow:hidden}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,rgba(200,16,46,0.3),transparent);opacity:0;transition:opacity 0.3s}
+.card.picked::before{opacity:1}
+.card.picked{background:rgba(255,255,255,0.05);border-color:rgba(200,16,46,0.25)}
 .card-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px}
-.player-name{font-size:18px;font-weight:700}
-.heat-badge{font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;display:inline-block;margin-left:8px}
-.player-meta{font-size:13px;color:#aaa;margin-top:4px}
-.streak-num{font-size:28px;font-weight:800;text-align:right}
-.streak-label{font-size:10px;color:#888;text-transform:uppercase;letter-spacing:1px;text-align:right}
-.stats-row{display:flex;align-items:center;gap:16px;padding:10px 12px;background:rgba(0,0,0,0.3);border-radius:8px;margin-bottom:12px}
+.player-name{font-family:'Oswald',sans-serif;font-size:20px;font-weight:700;letter-spacing:0.5px}
+.pos-tag{font-size:10px;font-weight:700;color:#8a857e;background:rgba(255,255,255,0.06);padding:2px 6px;border-radius:4px;margin-left:8px;vertical-align:middle;letter-spacing:0.5px}
+.heat-badge{font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;display:inline-block;margin-left:6px;letter-spacing:0.5px}
+.player-meta{font-size:13px;color:#8a857e;margin-top:4px}
+.streak-num{font-family:'Oswald',sans-serif;font-size:32px;font-weight:700;text-align:right;line-height:1}
+.streak-label{font-size:9px;color:#8a857e;text-transform:uppercase;letter-spacing:1.5px;text-align:right;margin-top:2px;font-weight:700}
+
+/* ── Stat Row ── */
+.stats-row{display:flex;align-items:center;gap:14px;padding:10px 12px;background:rgba(0,0,0,0.35);border-radius:10px;margin-bottom:12px;border:1px solid rgba(255,255,255,0.03)}
 .stat{flex:1}
-.stat-label{font-size:11px;color:#888;margin-bottom:2px}
-.stat-val{font-size:16px;font-weight:700}
-.divider{border-left:1px solid rgba(255,255,255,0.1);height:30px}
-.details-toggle{cursor:pointer;font-size:12px;color:#888;margin-bottom:0;padding:4px 0}
-.details-panel{padding:10px 12px;background:rgba(0,0,0,0.2);border-radius:8px;margin:10px 0 12px}
-.details-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:8px}
-.details-grid .stat-label{font-size:10px}
+.stat-label{font-size:10px;color:#8a857e;margin-bottom:2px;text-transform:uppercase;letter-spacing:0.5px;font-weight:600}
+.stat-val{font-family:'Oswald',sans-serif;font-size:17px;font-weight:600}
+.divider{border-left:1px solid rgba(255,255,255,0.06);height:30px}
+
+/* ── Details ── */
+.details-toggle{cursor:pointer;font-size:12px;color:#8a857e;margin-bottom:0;padding:4px 0;font-weight:600;transition:color 0.15s;background:none;border:none;display:block;text-align:left;width:100%}
+.details-toggle:hover{color:#b0aaa2}
+.details-panel{padding:10px 12px;background:rgba(0,0,0,0.25);border-radius:10px;margin:10px 0 12px;border:1px solid rgba(255,255,255,0.03)}
+.details-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px}
+.details-grid .stat-label{font-size:9px}
 .details-grid .stat-val{font-size:14px;font-weight:600}
-.rationale{font-size:12px;color:#aaa;font-style:italic}
+.rationale{font-size:12px;color:#8a857e;font-style:italic;line-height:1.5;border-left:2px solid rgba(200,16,46,0.3);padding-left:10px}
+
+/* ── Pick Buttons ── */
 .pick-btns{display:flex;gap:8px}
-.pick-btn{flex:1;padding:10px 0;border-radius:8px;border:none;cursor:pointer;font-size:14px;font-weight:700;transition:all 0.15s}
-.pick-yes{background:rgba(34,197,94,0.15);color:#22c55e}
-.pick-yes.selected{background:#22c55e;color:#000}
-.pick-no{background:rgba(239,68,68,0.15);color:#ef4444}
-.pick-no.selected{background:#ef4444;color:#fff}
-.slip{position:fixed;bottom:0;left:0;right:0;background:linear-gradient(180deg,transparent,#0a0a0a 20%);padding:20px 16px 16px;display:none;z-index:100}
+.pick-btn{flex:1;padding:11px 0;border-radius:8px;border:none;cursor:pointer;font-size:14px;font-weight:700;transition:all 0.2s;letter-spacing:0.3px}
+.pick-yes{background:rgba(34,197,94,0.1);color:#22c55e;border:1px solid rgba(34,197,94,0.15)}
+.pick-yes:hover{background:rgba(34,197,94,0.18)}
+.pick-yes[aria-pressed="true"]{background:#22c55e;color:#0c0c10;border-color:#22c55e}
+.pick-no{background:rgba(239,68,68,0.1);color:#ef4444;border:1px solid rgba(239,68,68,0.15)}
+.pick-no:hover{background:rgba(239,68,68,0.18)}
+.pick-no[aria-pressed="true"]{background:#ef4444;color:#fff;border-color:#ef4444}
+
+/* ── Slip ── */
+.slip{position:fixed;bottom:0;left:0;right:0;background:linear-gradient(180deg,transparent,#0c0c10 20%);padding:20px 16px 16px;display:none;z-index:100}
 .slip.show{display:block}
-.slip-inner{max-width:600px;margin:0 auto;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:12px;padding:16px}
+.slip-inner{max-width:620px;margin:0 auto;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:14px;padding:16px;backdrop-filter:blur(10px)}
 .slip-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
-.slip-title{font-size:14px;font-weight:700}
-.slip-clear{background:none;border:none;color:#888;font-size:12px;cursor:pointer}
-.slip-item{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.05)}
-.slip-item-name{font-size:13px;color:#ccc}
-.slip-item-dir{font-size:12px;font-weight:600}
-.slip-item-remove{background:none;border:none;color:#666;cursor:pointer;font-size:14px;margin-left:8px}
-.slip-footer{display:flex;justify-content:space-between;align-items:center;margin-top:12px;padding:12px 16px;background:rgba(255,170,0,0.1);border-radius:8px;border:1px solid rgba(255,170,0,0.2)}
-.payout-label{font-size:12px;color:#888}
-.payout-val{font-size:22px;font-weight:800;color:#ffaa00}
-.lock-btn{background:linear-gradient(135deg,#ffaa00,#ff6b1a);border:none;border-radius:8px;padding:10px 24px;font-size:15px;font-weight:700;color:#000;cursor:pointer}
-.empty{text-align:center;padding:40px;color:#666}
+.slip-title{font-family:'Oswald',sans-serif;font-size:15px;font-weight:700;letter-spacing:0.5px}
+.slip-clear{background:none;border:none;color:#8a857e;font-size:12px;cursor:pointer;font-weight:600}
+.slip-item{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid rgba(255,255,255,0.04)}
+.slip-item-name{font-size:13px;color:#bbb}
+.slip-item-dir{font-size:12px;font-weight:700}
+.slip-item-remove{background:none;border:none;color:#6b6760;cursor:pointer;font-size:14px;margin-left:8px;transition:color 0.15s}
+.slip-item-remove:hover{color:#ef4444}
+.slip-footer{display:flex;justify-content:space-between;align-items:center;margin-top:12px;padding:12px 16px;background:rgba(200,16,46,0.08);border-radius:10px;border:1px solid rgba(200,16,46,0.15)}
+.payout-label{font-size:11px;color:#8a857e;text-transform:uppercase;letter-spacing:0.5px;font-weight:600}
+.payout-val{font-family:'Oswald',sans-serif;font-size:24px;font-weight:700;color:#ffaa00}
+.lock-btn{background:linear-gradient(135deg,#c8102e,#ff6b35);border:none;border-radius:8px;padding:11px 24px;font-size:15px;font-weight:700;color:#fff;cursor:pointer;font-family:'Oswald',sans-serif;letter-spacing:1px;transition:transform 0.15s,box-shadow 0.15s}
+.lock-btn:hover{transform:translateY(-1px);box-shadow:0 4px 20px rgba(200,16,46,0.3)}
+
+/* ── Misc ── */
+.empty{text-align:center;padding:40px;color:#6b6760;font-weight:600}
+.type-pill{display:inline-block;font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px;letter-spacing:0.5px;margin-right:4px}
+.type-bat{background:rgba(255,170,0,0.12);color:#ffaa00;border:1px solid rgba(255,170,0,0.2)}
+.type-pitch{background:rgba(100,149,237,0.12);color:#6495ed;border:1px solid rgba(100,149,237,0.2)}
 </style>
 </head>
 <body>
 <div class="app" id="app"></div>
+<div id="slip" class="slip" role="complementary" aria-label="Your picks slip"></div>
 
-<script>
+<script type="module">
+// ── XSS Sanitizer ──
+function esc(str) {
+  const d = document.createElement('div');
+  d.textContent = String(str);
+  return d.innerHTML;
+}
+
+// ── Data ──
 const STREAKS = [
-  {id:1,player:"Nikola Jokić",team:"DEN",opp:"TOR",prop:"PRA",threshold:45,streak:7,line:50.5,avgDuring:54.2,seasonAvg:51.3,oppDefRtg:112.1,oppPace:99.1,homeAway:"Away",lastGames:[52,48,61,55,49,53,47],rationale:"Elite usage + triple-double machine. TOR allows 4th most PRA to centers."},
-  {id:2,player:"Jalen Brunson",team:"NYK",opp:"BKN",prop:"PTS",threshold:25,streak:5,line:36.5,avgDuring:31.4,seasonAvg:28.7,oppDefRtg:118.2,oppPace:97.2,homeAway:"Home",lastGames:[34,28,29,33,31],rationale:"BKN bottom 5 defense. Brunson averages 33 PTS in last 3 vs BKN."},
-  {id:3,player:"Anthony Edwards",team:"MIN",opp:"POR",prop:"PTS",threshold:28,streak:4,line:29.5,avgDuring:33.8,seasonAvg:27.2,oppDefRtg:114.7,oppPace:102.0,homeAway:"Away",lastGames:[35,29,38,31],rationale:"POR allows 3rd most points to SGs. Edwards in aggressive mode L5."},
-  {id:4,player:"Cade Cunningham",team:"DET",opp:"GSW",prop:"PRA",threshold:35,streak:6,line:40,avgDuring:42.1,seasonAvg:38.5,oppDefRtg:113.4,oppPace:100.3,homeAway:"Home",lastGames:[44,38,41,45,39,43],rationale:"High usage rate + GSW mid-tier defense. Cade's L5 PRA trending up."},
-  {id:5,player:"Jaylen Brown",team:"BOS",opp:"MEM",prop:"PTS",threshold:22,streak:8,line:25.5,avgDuring:27.3,seasonAvg:24.1,oppDefRtg:116.7,oppPace:101.5,homeAway:"Away",lastGames:[25,28,23,30,24,26,29,25],rationale:"MEM weak perimeter D. Brown consistent scorer, rarely dips below 22."},
-  {id:6,player:"Jalen Johnson",team:"HOU",opp:"ATL",prop:"REB",threshold:8,streak:3,line:10.5,avgDuring:11.2,seasonAvg:9.8,oppDefRtg:112.5,oppPace:103.2,homeAway:"Home",lastGames:[12,9,11],rationale:"ATL allows most rebounds to PFs. Johnson's minutes trending up."},
-  {id:7,player:"Kevin Durant",team:"HOU",opp:"ATL",prop:"PTS",threshold:24,streak:5,line:24.5,avgDuring:28.4,seasonAvg:26.8,oppDefRtg:112.5,oppPace:103.2,homeAway:"Home",lastGames:[27,30,25,26,29],rationale:"Consistent elite scorer. ATL defense exploitable at every level."}
+  {
+    id:1, player:"Shea Langeliers", team:"ATH", opp:"HOU", pos:"C",
+    prop:"HR", propType:"bat", threshold:1, streak:5, streakLabel:"games w/ HR",
+    line:"O/U 0.5 HR", avgDuring:"0.83 HR/G", seasonAvg:".375 / 5 HR",
+    detail1:"1.289", detail1Label:"OPS", detail2:"5 HR / 6 G", detail2Label:"Pace",
+    detail3:"+130", detail3Label:"HR Line",
+    homeAway:"Home",
+    lastGames:[1,1,0,1,1,1], lastThreshold:1,
+    rationale:"Historic pace — 5 HR in 6 games ties McGwire's '92 A's record. Hitter-friendly Sutter Health Park for home opener vs HOU. Only catcher since Gabby Hartnett (1925) to start this hot."
+  },
+  {
+    id:2, player:"Kevin Gausman", team:"TOR", opp:"LAD", pos:"SP",
+    prop:"K", propType:"pitch", threshold:10, streak:2, streakLabel:"starts w/ 10+ K",
+    line:"O/U 7.5 K", avgDuring:"10.5 K/GS", seasonAvg:"21 K / 12 IP",
+    detail1:"0 BB", detail1Label:"Walks (Szn)", detail2:"0.50", detail2Label:"WHIP",
+    detail3:"LAD", detail3Label:"Next Opp",
+    homeAway:"Home",
+    lastGames:[11,10], lastThreshold:10,
+    rationale:"First pitcher since 1900 with 10+ K and 0 BB in each of first 2 starts. Splitter generating whiffs at elite rate. Tough matchup vs LAD but Rogers Centre crowd behind him."
+  },
+  {
+    id:3, player:"Shohei Ohtani", team:"LAD", opp:"@TOR", pos:"DH/SP",
+    prop:"OB", propType:"bat", threshold:1, streak:37, streakLabel:"game on-base streak",
+    line:"Longest active in MLB", avgDuring:".410 OBP", seasonAvg:"55 HR / .380 OBP '25",
+    detail1:"22.2", detail1Label:"Scoreless IP", detail2:"37", detail2Label:"OB Streak",
+    detail3:"2-Way", detail3Label:"Role",
+    homeAway:"Away",
+    lastGames:[1,1,1,1,1,1,1], lastThreshold:1,
+    rationale:"Career-high 37-game on-base streak + longest active scoreless innings streak among starters (22⅔ IP). Two-way dominance at unprecedented levels entering '26."
+  },
+  {
+    id:4, player:"Chase DeLauter", team:"CLE", opp:"CHC", pos:"OF",
+    prop:"HR", propType:"bat", threshold:1, streak:3, streakLabel:"games w/ HR",
+    line:"O/U 0.5 HR", avgDuring:"1.3 HR/G", seasonAvg:"4 HR / 6 G",
+    detail1:"1.450", detail1Label:"OPS", detail2:"Rookie", detail2Label:"Status",
+    detail3:".385", detail3Label:"AVG",
+    homeAway:"Home",
+    lastGames:[2,1,0,1,1], lastThreshold:1,
+    rationale:"Hit 2 HR in his MLB debut — only 8th player in history. 4 HR through opening week. Progressive Field crowd singing 'Country Roads' every AB. Electric arrival."
+  },
+  {
+    id:5, player:"Max Fried", team:"NYY", opp:"MIA", pos:"SP",
+    prop:"QS", propType:"pitch", threshold:1, streak:2, streakLabel:"quality starts",
+    line:"O/U 5.5 K", avgDuring:"0.00 ERA", seasonAvg:"19-6, 2.80 ERA '25",
+    detail1:"0 ER", detail1Label:"Runs Allowed", detail2:"18 IP", detail2Label:"NYY Scoreless",
+    detail3:"MIA", detail3Label:"Next Opp",
+    homeAway:"Away",
+    lastGames:[1,1], lastThreshold:1,
+    rationale:"Anchoring NYY staff that opened with 18 consecutive scoreless innings (back-to-back shutouts). 7 scoreless IP vs SF in last start. Faces rebuilding MIA lineup next."
+  },
+  {
+    id:6, player:"Bobby Witt Jr.", team:"KC", opp:"CWS", pos:"SS",
+    prop:"H", propType:"bat", threshold:1, streak:6, streakLabel:"game hit streak",
+    line:"O/U 1.5 H", avgDuring:"2.0 H/G", seasonAvg:"184 H / .299 AVG '25",
+    detail1:".340", detail1Label:"AVG (2026)", detail2:"3", detail2Label:"SB",
+    detail3:"CWS", detail3Label:"Next Opp",
+    homeAway:"Home",
+    lastGames:[2,1,3,2,1,2], lastThreshold:1,
+    rationale:"Led MLB with 184 hits in '25. White Sox projected bottom-5 rotation in AL. Witt's elite contact rate means he rarely goes hitless — 91% hit-game rate L30 of '25."
+  },
+  {
+    id:7, player:"Aaron Judge", team:"NYY", opp:"MIA", pos:"RF",
+    prop:"TB", propType:"bat", threshold:3, streak:4, streakLabel:"games w/ 3+ TB",
+    line:"O/U 2.5 TB", avgDuring:"4.2 TB/G", seasonAvg:".331 / 53 HR '25",
+    detail1:"1.050", detail1Label:"OPS (2026)", detail2:"3 HR", detail2Label:"HR",
+    detail3:"MIA", detail3Label:"Next Opp",
+    homeAway:"Away",
+    lastGames:[4,5,3,4], lastThreshold:3,
+    rationale:"Picking up right where his monster '25 left off. MIA bullpen already gassed in week 1. Judge feasts on weak pitching — .380 career BA vs sub-4.50 ERA starters."
+  },
+  {
+    id:8, player:"Drake Baldwin", team:"ATL", opp:"ARI", pos:"C",
+    prop:"HR", propType:"bat", threshold:1, streak:3, streakLabel:"games w/ HR",
+    line:"O/U 0.5 HR", avgDuring:"1.0 HR/G", seasonAvg:"NL ROY '25",
+    detail1:"3 HR", detail1Label:"HR (2026)", detail2:".950", detail2Label:"OPS",
+    detail3:"ARI", detail3Label:"Next Opp",
+    homeAway:"Home",
+    lastGames:[1,0,1,1,1], lastThreshold:1,
+    rationale:"Reigning NL Rookie of the Year rolling into '26. 3 HR already including a bomb on bobblehead night at Truist Park. Catchers raking league-wide early."
+  }
 ];
 
+// ── State ──
 let picks = {};
 let filter = "all";
 let sortBy = "streak";
 let expandedCards = {};
 
-function getMultiplier(s){if(s>=8)return 3.5;if(s>=6)return 2.8;if(s>=5)return 2.2;if(s>=4)return 1.8;return 1.4}
-
-function getHeat(s){
-  if(s>=8)return{label:"INFERNO",color:"#ff2d2d",emoji:"🔥🔥🔥",bg:"rgba(255,45,45,0.12)"};
-  if(s>=6)return{label:"ON FIRE",color:"#ff6b1a",emoji:"🔥🔥",bg:"rgba(255,107,26,0.10)"};
-  if(s>=4)return{label:"HEATING UP",color:"#ffaa00",emoji:"🔥",bg:"rgba(255,170,0,0.08)"};
-  return{label:"WARM",color:"#ffd966",emoji:"♨️",bg:"rgba(255,217,102,0.06)"}
+// ── Helpers ──
+function getMultiplier(s) {
+  if (s >= 37) return 5.0;
+  if (s >= 8)  return 3.5;
+  if (s >= 5)  return 2.5;
+  if (s >= 4)  return 2.0;
+  if (s >= 3)  return 1.7;
+  return 1.4;
 }
 
-function miniChart(games,threshold){
-  const max=Math.max(...games,threshold+5);const w=100;const h=36;const gap=2;
-  const barW=(w-gap*(games.length-1))/games.length;
-  const threshY=h-(threshold/max)*h;
-  let svg=`<svg width="${w}" height="${h}" style="display:block">`;
-  games.forEach((g,i)=>{
-    const barH=(g/max)*h;const hit=g>=threshold;
-    svg+=`<rect x="${i*(barW+gap)}" y="${h-barH}" width="${barW}" height="${barH}" rx="2" fill="${hit?'#22c55e':'#ef4444'}" opacity="0.85"/>`;
+function getHeat(s) {
+  if (s >= 10) return { label:"INFERNO",    color:"#c8102e", emoji:"🔥🔥🔥", bg:"rgba(200,16,46,0.12)" };
+  if (s >= 5)  return { label:"ON FIRE",    color:"#ff6b35", emoji:"🔥🔥",   bg:"rgba(255,107,53,0.10)" };
+  if (s >= 3)  return { label:"HEATING UP", color:"#ffaa00", emoji:"🔥",     bg:"rgba(255,170,0,0.08)" };
+  return { label:"WARM", color:"#ffd966", emoji:"♨️", bg:"rgba(255,217,102,0.06)" };
+}
+
+function miniChart(games, threshold) {
+  const max = Math.max(...games, threshold + 1);
+  const w = 90, h = 32, gap = 3;
+  const barW = (w - gap * (games.length - 1)) / games.length;
+  const threshY = h - (threshold / max) * h;
+  let svg = `<svg width="${w}" height="${h}" aria-hidden="true" style="display:block">`;
+  games.forEach((g, i) => {
+    const barH = Math.max((g / max) * h, 2);
+    const hit = g >= threshold;
+    svg += `<rect x="${i*(barW+gap)}" y="${h-barH}" width="${barW}" height="${barH}" rx="2" fill="${hit?'#22c55e':'#ef4444'}" opacity="0.85"/>`;
   });
-  svg+=`<line x1="0" y1="${threshY}" x2="${w}" y2="${threshY}" stroke="#ffd966" stroke-width="1.5" stroke-dasharray="3,2"/>`;
-  svg+=`</svg>`;return svg;
+  svg += `<line x1="0" y1="${threshY}" x2="${w}" y2="${threshY}" stroke="#ffd966" stroke-width="1" stroke-dasharray="3,2" opacity="0.6"/>`;
+  svg += `</svg>`;
+  return svg;
 }
 
-function defColor(rtg){return rtg>114?'#ef4444':rtg>112?'#ffaa00':'#22c55e'}
+// ── Render ──
+function render() {
+  let data = [...STREAKS];
+  if (filter === "fire")  data = data.filter(s => s.streak >= 5);
+  if (filter === "bat")   data = data.filter(s => s.propType === "bat");
+  if (filter === "pitch") data = data.filter(s => s.propType === "pitch");
+  if (filter === "hr")    data = data.filter(s => s.prop === "HR");
+  if (sortBy === "streak")     data.sort((a,b) => b.streak - a.streak);
+  if (sortBy === "multiplier") data.sort((a,b) => getMultiplier(b.streak) - getMultiplier(a.streak));
+  if (sortBy === "newest")     data.sort((a,b) => a.id - b.id);
 
-function render(){
-  let data=[...STREAKS];
-  if(filter==="smash")data=data.filter(s=>s.streak>=6);
-  if(filter==="pts")data=data.filter(s=>s.prop==="PTS");
-  if(filter==="pra")data=data.filter(s=>s.prop==="PRA");
-  if(filter==="reb")data=data.filter(s=>s.prop==="REB");
-  if(sortBy==="streak")data.sort((a,b)=>b.streak-a.streak);
-  if(sortBy==="multiplier")data.sort((a,b)=>getMultiplier(b.streak)-getMultiplier(a.streak));
-  if(sortBy==="matchup")data.sort((a,b)=>b.oppDefRtg-a.oppDefRtg);
+  const filters = [
+    {k:"all",l:"All Streaks"},{k:"fire",l:"🔥 5+ Games"},{k:"bat",l:"⚾ Batting"},{k:"pitch",l:"⚡ Pitching"},{k:"hr",l:"💣 HR"}
+  ];
+  const sorts = [
+    {k:"streak",l:"Streak Length"},{k:"multiplier",l:"Payout"},{k:"newest",l:"Newest"}
+  ];
 
-  const filters=[{k:"all",l:"All Streaks"},{k:"smash",l:"🔥 6+ Games"},{k:"pts",l:"PTS"},{k:"pra",l:"PRA"},{k:"reb",l:"REB"}];
-  const sorts=[{k:"streak",l:"Streak Length"},{k:"multiplier",l:"Payout"},{k:"matchup",l:"Weak Defense"}];
+  const hasSlip = Object.keys(picks).length > 0;
+  const appEl = document.getElementById('app');
+  appEl.classList.toggle('has-slip', hasSlip);
 
-  let h=`<div class="header"><div class="logo">HEATER</div><div class="subtitle">Ride the streak or call the cold</div></div>`;
-  h+=`<div class="filters">${filters.map(f=>`<button class="filter-btn${filter===f.k?' active':''}" onclick="setFilter('${f.k}')">${f.l}</button>`).join('')}</div>`;
-  h+=`<div class="sorts">${sorts.map(s=>`<button class="sort-btn${sortBy===s.k?' active':''}" onclick="setSort('${s.k}')">↕ ${s.l}</button>`).join('')}</div>`;
+  let h = `<header>
+    <div class="logo">HEATER</div>
+    <p class="subtitle">MLB Streak Predictions · April 2026</p>
+  </header>`;
 
-  if(data.length===0){
-    h+=`<div class="empty">No active streaks match this filter</div>`;
+  h += `<nav class="filters" role="group" aria-label="Streak filters">${filters.map(f =>
+    `<button class="filter-btn" aria-pressed="${filter===f.k}" data-action="filter" data-value="${esc(f.k)}">${esc(f.l)}</button>`
+  ).join('')}</nav>`;
+
+  h += `<div class="sorts" role="group" aria-label="Sort options">${sorts.map(s =>
+    `<button class="sort-btn" aria-pressed="${sortBy===s.k}" data-action="sort" data-value="${esc(s.k)}">↕ ${esc(s.l)}</button>`
+  ).join('')}</div>`;
+
+  if (data.length === 0) {
+    h += `<p class="empty">No active streaks match this filter</p>`;
   } else {
-    h+=`<div class="cards">${data.map(s=>{
-      const heat=getHeat(s.streak);const mult=getMultiplier(s.streak);const p=picks[s.id];const exp=expandedCards[s.id];
-      return`<div class="card${p?' picked':''}" style="${p?`border-color:${heat.color}`:''}">
+    h += `<main class="cards">${data.map(s => {
+      const heat = getHeat(s.streak);
+      const mult = getMultiplier(s.streak);
+      const p = picks[s.id];
+      const exp = expandedCards[s.id];
+      const typeClass = s.propType === 'bat' ? 'type-bat' : 'type-pitch';
+      const typeLabel = s.propType === 'bat' ? 'BAT' : 'ARM';
+      const panelId = `details-${s.id}`;
+
+      return `<section class="card${p?' picked':''}" style="${p?`border-color:${heat.color}30`:''}">
         <div class="card-top">
           <div style="flex:1">
-            <div><span class="player-name">${s.player}</span><span class="heat-badge" style="background:${heat.bg};color:${heat.color};border:1px solid ${heat.color}40">${heat.emoji} ${heat.label}</span></div>
-            <div class="player-meta">${s.team} ${s.homeAway==='Home'?'vs':'@'} ${s.opp} · ${s.prop} · ${s.homeAway}</div>
+            <div>
+              <span class="player-name">${esc(s.player)}</span>
+              <span class="pos-tag">${esc(s.pos)}</span>
+              <span class="heat-badge" style="background:${heat.bg};color:${heat.color};border:1px solid ${heat.color}35">${heat.emoji} ${esc(heat.label)}</span>
+            </div>
+            <div class="player-meta">
+              <span class="type-pill ${typeClass}">${esc(typeLabel)}</span>
+              ${esc(s.team)} ${s.homeAway==='Home'?'vs':'@'} ${esc(s.opp)} · ${esc(s.prop)} · ${esc(s.homeAway)}
+            </div>
           </div>
-          <div><div class="streak-num" style="color:${heat.color}">${s.streak}</div><div class="streak-label">game streak</div></div>
+          <div>
+            <div class="streak-num" style="color:${heat.color}">${esc(s.streak)}</div>
+            <div class="streak-label">${s.streak >= 10 ? 'game streak' : 'games'}</div>
+          </div>
         </div>
         <div class="stats-row">
-          <div class="stat"><div class="stat-label">Threshold</div><div class="stat-val" style="color:#ffd966">${s.prop} ≥ ${s.threshold}</div></div>
-          <div class="divider"></div>
-          <div class="stat"><div class="stat-label">Streak Avg</div><div class="stat-val" style="color:#22c55e">${s.avgDuring}</div></div>
-          <div class="divider"></div>
-          <div class="stat"><div class="stat-label">Season Avg</div><div class="stat-val" style="color:#ccc">${s.seasonAvg}</div></div>
-          <div class="divider"></div>
-          <div>${miniChart(s.lastGames,s.threshold)}</div>
-        </div>
-        <div class="details-toggle" onclick="toggleDetails(${s.id})">${exp?'▾ Hide Details':'▸ Matchup Details'}</div>
-        ${exp?`<div class="details-panel">
-          <div class="details-grid">
-            <div><div class="stat-label">Opp Def Rtg</div><div class="stat-val" style="color:${defColor(s.oppDefRtg)}">${s.oppDefRtg}</div></div>
-            <div><div class="stat-label">Opp Pace</div><div class="stat-val" style="color:#ccc">${s.oppPace}</div></div>
-            <div><div class="stat-label">Line</div><div class="stat-val" style="color:#ccc">${s.line}</div></div>
+          <div class="stat">
+            <div class="stat-label">${esc(s.streakLabel)}</div>
+            <div class="stat-val" style="color:#ffd966">${esc(s.prop)} ≥ ${esc(s.threshold)}</div>
           </div>
-          <div class="rationale">"${s.rationale}"</div>
-        </div>`:''}
-        <div class="pick-btns">
-          <button class="pick-btn pick-yes${p==='yes'?' selected':''}" onclick="makePick(${s.id},'yes')">🔥 KEEPS ROLLING · ${mult}x</button>
-          <button class="pick-btn pick-no${p==='no'?' selected':''}" onclick="makePick(${s.id},'no')">❄️ STREAK ENDS · ${(mult*0.6).toFixed(1)}x</button>
+          <div class="divider" aria-hidden="true"></div>
+          <div class="stat">
+            <div class="stat-label">During Streak</div>
+            <div class="stat-val" style="color:#22c55e">${esc(s.avgDuring)}</div>
+          </div>
+          <div class="divider" aria-hidden="true"></div>
+          <div class="stat">
+            <div class="stat-label">Reference</div>
+            <div class="stat-val" style="color:#bbb">${esc(s.seasonAvg)}</div>
+          </div>
+          <div class="divider" aria-hidden="true"></div>
+          <div>${miniChart(s.lastGames, s.lastThreshold)}</div>
         </div>
-      </div>`;
-    }).join('')}</div>`;
+        <button class="details-toggle" data-action="toggle" data-id="${s.id}" aria-expanded="${!!exp}" aria-controls="${panelId}">${exp?'▾ Hide Details':'▸ Matchup &amp; Context'}</button>
+        ${exp?`<div class="details-panel" id="${panelId}">
+          <div class="details-grid">
+            <div><div class="stat-label">${esc(s.detail1Label)}</div><div class="stat-val" style="color:#6495ed">${esc(s.detail1)}</div></div>
+            <div><div class="stat-label">${esc(s.detail2Label)}</div><div class="stat-val" style="color:#ffaa00">${esc(s.detail2)}</div></div>
+            <div><div class="stat-label">${esc(s.detail3Label)}</div><div class="stat-val" style="color:#bbb">${esc(s.detail3)}</div></div>
+          </div>
+          <div class="rationale">${esc(s.rationale)}</div>
+        </div>`:''}
+        <div class="pick-btns" role="group" aria-label="Pick direction for ${esc(s.player)}">
+          <button class="pick-btn pick-yes" aria-pressed="${p==='yes'}" data-action="pick" data-id="${s.id}" data-dir="yes">🔥 KEEPS ROLLING · ${mult}x</button>
+          <button class="pick-btn pick-no" aria-pressed="${p==='no'}" data-action="pick" data-id="${s.id}" data-dir="no">❄️ STREAK SNAPS · ${(mult*0.6).toFixed(1)}x</button>
+        </div>
+      </section>`;
+    }).join('')}</main>`;
   }
 
-  // Slip
-  const entries=Object.entries(picks);
-  if(entries.length>0){
-    const totalMult=entries.reduce((acc,[id,dir])=>{
-      const s=STREAKS.find(x=>x.id===Number(id));
-      const m=dir==='yes'?getMultiplier(s.streak):getMultiplier(s.streak)*0.6;
-      return acc*m;
-    },1);
-    h+=`<div style="height:200px"></div>`;
-    document.getElementById('slip').className='slip show';
-    document.getElementById('slip').innerHTML=`<div class="slip-inner">
-      <div class="slip-header"><span class="slip-title">YOUR SLIP · ${entries.length} pick${entries.length>1?'s':''}</span><button class="slip-clear" onclick="clearPicks()">Clear All</button></div>
-      ${entries.map(([id,dir])=>{
-        const s=STREAKS.find(x=>x.id===Number(id));
-        return`<div class="slip-item">
-          <span class="slip-item-name">${s.player} · ${s.prop} ${s.threshold}+ streak</span>
+  appEl.innerHTML = h;
+
+  // ── Render Slip ──
+  const entries = Object.entries(picks);
+  const slipEl = document.getElementById('slip');
+  if (entries.length > 0) {
+    const totalMult = entries.reduce((acc, [id, dir]) => {
+      const s = STREAKS.find(x => x.id === Number(id));
+      const m = dir === 'yes' ? getMultiplier(s.streak) : getMultiplier(s.streak) * 0.6;
+      return acc * m;
+    }, 1);
+
+    slipEl.className = 'slip show';
+    slipEl.innerHTML = `<div class="slip-inner">
+      <div class="slip-header">
+        <span class="slip-title">YOUR SLIP · ${entries.length} PICK${entries.length>1?'S':''}</span>
+        <button class="slip-clear" data-action="clear-all">Clear All</button>
+      </div>
+      ${entries.map(([id, dir]) => {
+        const s = STREAKS.find(x => x.id === Number(id));
+        return `<div class="slip-item">
+          <span class="slip-item-name">${esc(s.player)} · ${esc(s.prop)} ${esc(s.streakLabel)}</span>
           <div style="display:flex;align-items:center">
-            <span class="slip-item-dir" style="color:${dir==='yes'?'#22c55e':'#ef4444'}">${dir==='yes'?'🔥 Rolls':'❄️ Ends'}</span>
-            <button class="slip-item-remove" onclick="removePick(${id})">✕</button>
+            <span class="slip-item-dir" style="color:${dir==='yes'?'#22c55e':'#ef4444'}">${dir==='yes'?'🔥 Rolls':'❄️ Snaps'}</span>
+            <button class="slip-item-remove" data-action="remove-pick" data-id="${id}" aria-label="Remove ${esc(s.player)}">✕</button>
           </div>
         </div>`;
       }).join('')}
       <div class="slip-footer">
-        <div><div class="payout-label">Combined Payout</div><div class="payout-val">${totalMult.toFixed(1)}x</div></div>
-        <button class="lock-btn" onclick="lockIn()">LOCK IT IN 🔒</button>
+        <div>
+          <div class="payout-label">Combined Payout</div>
+          <div class="payout-val">${totalMult.toFixed(1)}x</div>
+        </div>
+        <button class="lock-btn" data-action="lock">LOCK IT IN 🔒</button>
       </div>
     </div>`;
   } else {
-    document.getElementById('slip').className='slip';
-    document.getElementById('slip').innerHTML='';
+    slipEl.className = 'slip';
+    slipEl.innerHTML = '';
   }
-
-  document.getElementById('app').innerHTML=h;
 }
 
-function setFilter(f){filter=f;render()}
-function setSort(s){sortBy=s;render()}
-function toggleDetails(id){expandedCards[id]=!expandedCards[id];render()}
-function makePick(id,dir){if(picks[id]===dir)delete picks[id];else picks[id]=dir;render()}
-function removePick(id){delete picks[id];render()}
-function clearPicks(){picks={};render()}
-function lockIn(){
-  const count=Object.keys(picks).length;
-  alert(`🔒 ${count} pick${count>1?'s':''} locked! This is a prototype — in production this would submit your entry.`);
-}
+// ── Event Delegation (single listener on document) ──
+document.addEventListener('click', (e) => {
+  const btn = e.target.closest('[data-action]');
+  if (!btn) return;
 
-// Init
-document.body.insertAdjacentHTML('beforeend','<div id="slip" class="slip"></div>');
+  const action = btn.dataset.action;
+
+  switch (action) {
+    case 'filter':
+      filter = btn.dataset.value;
+      render();
+      break;
+    case 'sort':
+      sortBy = btn.dataset.value;
+      render();
+      break;
+    case 'toggle':
+      const toggleId = Number(btn.dataset.id);
+      expandedCards[toggleId] = !expandedCards[toggleId];
+      render();
+      break;
+    case 'pick': {
+      const pickId = Number(btn.dataset.id);
+      const dir = btn.dataset.dir;
+      if (picks[pickId] === dir) delete picks[pickId];
+      else picks[pickId] = dir;
+      render();
+      break;
+    }
+    case 'remove-pick':
+      delete picks[Number(btn.dataset.id)];
+      render();
+      break;
+    case 'clear-all':
+      picks = {};
+      render();
+      break;
+    case 'lock': {
+      const count = Object.keys(picks).length;
+      alert(`🔒 ${count} pick${count>1?'s':''} locked! This is a prototype — in production this would submit your entry.`);
+      break;
+    }
+  }
+});
+
+// ── Init ──
 render();
 </script>
 </body>
