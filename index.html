@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Around the Horn</title>
+  <title>Heater</title>
   <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -16,207 +16,215 @@
   <script type="text/babel">
     const { useState } = React;
 
-    const INNINGS = [
-      {
-        number: 1, category: "K King", emoji: "\u{1F525}",
-        description: "Which pitcher records the most strikeouts tonight?",
-        type: "pick1of3",
-        options: [
-          { name: "Jacob Misiorowski", team: "MIL", detail: "vs BOS \u2022 18 K in 11 IP this season \u2022 Elite swing-and-miss stuff" },
-          { name: "Garrett Crochet", team: "BOS", detail: "vs MIL \u2022 15 K in 11 IP \u2022 High-K duel at Fenway" },
-          { name: "Gavin Williams", team: "CLE", detail: "vs KC \u2022 10 K last start vs LAD \u2022 Shut out Dodgers thru 7 IP" }
-        ]
-      },
-      {
-        number: 2, category: "Gone Yard", emoji: "\u{1F4A3}",
-        description: "Over/Under on total HRs across tonight's 15-game slate?",
-        type: "overunder", line: 18.5,
-        context: "HOU @ COL at Coors Field \u2022 Astros lead MLB in OPS \u2022 Wind blowing out in Chicago"
-      },
-      {
-        number: 3, category: "Speed Demon", emoji: "\u26A1",
-        description: "Will there be a stolen base in the first 3 innings?",
-        type: "yesno", game: "LAD @ TOR \u2022 World Series rematch",
-        context: "Dodgers 8-2, lead NL West \u2022 Won 14-2 last night \u2022 Dodgers have been aggressive on the bases"
-      },
-      {
-        number: 4, category: "RBI Machine", emoji: "\u{1F4AA}",
-        description: "Which batter drives in the most runs tonight?",
-        type: "pick1of3",
-        options: [
-          { name: "Yordan Alvarez", team: "HOU", detail: "@ COL \u2022 Astros 1st in hits & runs \u2022 Coors Field + healthy Yordan = damage" },
-          { name: "Shohei Ohtani", team: "LAD", detail: "@ TOR \u2022 Dodgers 1st in BA, SLG & HR \u2022 LAD scored 14 runs last night" },
-          { name: "Jose Ramirez", team: "CLE", detail: "vs KC \u2022 Just set franchise record: 1,620 career games \u2022 Heart of CLE lineup" }
-        ]
-      },
-      {
-        number: 5, category: "Pitcher's Duel", emoji: "\u{1F910}",
-        description: "Which game has the lowest combined score?",
-        type: "pick1of3",
-        options: [
-          { name: "DET @ MIN", team: "", detail: "Skubal vs Bradley \u2022 Skubal: 0.69 ERA, 1 ER in 13 IP \u2022 Bradley: 1 ER in 10.1 IP" },
-          { name: "SD @ PIT", team: "", detail: "Pivetta vs Skenes \u2022 Both bounced back after rough openers \u2022 PNC Park pitcher-friendly" },
-          { name: "KC @ CLE", team: "", detail: "Cameron vs Williams \u2022 Lowest O/U on slate \u2022 Freezing temps in Cleveland" }
-        ]
-      },
-      {
-        number: 6, category: "Extra Bases", emoji: "\u{1F3C3}",
-        description: "Which batter has the most total bases tonight?",
-        type: "pick1of3",
-        options: [
-          { name: "Vladimir Guerrero Jr.", team: "TOR", detail: "vs LAD \u2022 Getting on base consistently \u2022 WS rematch motivation at Rogers Centre" },
-          { name: "Adolis Garcia", team: "PHI", detail: "@ SF \u2022 .835 OPS, 2nd on PHI \u2022 Change of scenery working so far" },
-          { name: "Colt Keith", team: "DET", detail: "@ MIN \u2022 Surprise OPS leader for Tigers \u2022 Emerging breakout candidate" }
-        ]
-      },
-      {
-        number: 7, category: "First Blood", emoji: "\u{1FA78}",
-        description: "Which game has a run scored first?",
-        type: "pick1of3",
-        options: [
-          { name: "HOU @ COL", team: "", detail: "Coors Field \u2022 Astros 1st in MLB in runs \u2022 Burrows allowing heavy traffic (14 H, 5 BB in 10.2 IP)" },
-          { name: "LAD @ TOR", team: "", detail: "Dodgers scored early & often last night \u2022 Yamamoto vs Gausman \u2022 7:07 PM ET" },
-          { name: "MIL @ BOS", team: "", detail: "Misiorowski vs Crochet \u2022 High-K but both can be wild early \u2022 Fenway factor" }
-        ]
-      },
-      {
-        number: 8, category: "Iron Man", emoji: "\u{1F6E1}",
-        description: "Which starter goes the deepest tonight?",
-        type: "pick1of3",
-        options: [
-          { name: "Sandy Alcantara", team: "MIA", detail: "vs CIN \u2022 0.00 ERA thru 16 IP \u2022 1.45 xERA \u2022 Elite workhorse" },
-          { name: "Cam Schlittler", team: "NYY", detail: "vs OAK \u2022 0 runs in 11.2 IP \u2022 Dominant start to career \u2022 Weak A's lineup" },
-          { name: "Tarik Skubal", team: "DET", detail: "@ MIN \u2022 0.69 ERA, 1 ER in 13 IP \u2022 Reigning Cy Young \u2022 Always goes deep" }
-        ]
-      },
-      {
-        number: 9, category: "The Closer", emoji: "\u{1F6AA}",
-        description: "Do the Braves bullpen convert the save tonight?",
-        type: "yesno", game: "ATL @ LAA \u2022 9:38 PM ET",
-        context: "Braves: Lowest ERA in MLB (1.82) \u2022 Best bullpen ERA (1.08) \u2022 Angels struggling at 3-7"
-      }
+    const TIERS = {
+      3: { label: "Warming Up", color: "#f59e0b", mult: "1.5x", glow: "0 0 8px rgba(245,158,11,0.3)" },
+      4: { label: "Warming Up", color: "#f59e0b", mult: "1.8x", glow: "0 0 8px rgba(245,158,11,0.3)" },
+      5: { label: "Hot", color: "#f97316", mult: "2.2x", glow: "0 0 12px rgba(249,115,22,0.4)" },
+      6: { label: "Hot", color: "#f97316", mult: "2.8x", glow: "0 0 12px rgba(249,115,22,0.4)" },
+      7: { label: "On Fire", color: "#ef4444", mult: "3.5x", glow: "0 0 16px rgba(239,68,68,0.5)" },
+      8: { label: "On Fire", color: "#ef4444", mult: "4.5x", glow: "0 0 16px rgba(239,68,68,0.5)" },
+      9: { label: "Scorching", color: "#dc2626", mult: "6x", glow: "0 0 20px rgba(220,38,38,0.6)" },
+      10: { label: "Scorching", color: "#dc2626", mult: "8x", glow: "0 0 20px rgba(220,38,38,0.6)" }
+    };
+
+    const STREAKS = [
+      { name: "Andy Pages", team: "LAD", opp: "@ TOR", streak: 8, avg: ".471", detail: "16-for-34 \u2022 3 HR \u2022 Best hitter on Dodgers so far \u2022 Bounced back from rough postseason", tonight: "vs Kevin Gausman (20.3% SwStr rate)" },
+      { name: "Andres Gimenez", team: "CLE", opp: "vs KC", streak: 7, avg: ".375", detail: "MLB leader in hits \u2022 6 multi-hit games \u2022 Elite contact rate", tonight: "vs Noah Cameron (LHP \u2022 solid debut: 5 IP, 1 ER)" },
+      { name: "Yordan Alvarez", team: "HOU", opp: "@ COL", streak: 6, avg: ".341", detail: "HOU leads MLB in OPS, hits & runs \u2022 Healthy Yordan = elite", tonight: "vs Kyle Freeland at Coors Field \u2022 xERA 5.23" },
+      { name: "Shea Langeliers", team: "OAK", opp: "@ NYY", streak: 5, avg: ".310", detail: "5 HR in first 6 games \u2022 Tied MLB HR lead \u2022 Historic catching pace", tonight: "vs Cam Schlittler (0 runs in 11.2 IP \u2022 Tough matchup)" },
+      { name: "Jose Ramirez", team: "CLE", opp: "vs KC", streak: 5, avg: ".333", detail: "Franchise record: 1,620 career games \u2022 Heart of CLE lineup", tonight: "vs Noah Cameron \u2022 Most dangerous in this matchup per H2H data" },
+      { name: "Colt Keith", team: "DET", opp: "@ MIN", streak: 4, avg: ".320", detail: "Surprise OPS leader for Tigers \u2022 Emerging breakout \u2022 Consistent contact", tonight: "vs Taj Bradley (0.87 ERA \u2022 Tough but K-heavy)" },
+      { name: "Vlad Guerrero Jr.", team: "TOR", opp: "vs LAD", streak: 4, avg: ".293", detail: "Getting on base consistently \u2022 WS rematch motivation", tonight: "vs Yoshinobu Yamamoto (3.00 ERA \u2022 8 K in 2 starts)" },
+      { name: "Giancarlo Stanton", team: "NYY", opp: "vs OAK", streak: 3, avg: ".400", detail: ".400 BA in 25 PA \u2022 No walks, 5 K \u2022 Surprising hot start", tonight: "vs Aaron Civale (low K rate \u2022 hittable)" },
+      { name: "Ian Happ", team: "CHC", opp: "@ TB", streak: 3, avg: ".267", detail: "4 HR already \u2022 Cubs leader in SLG \u2022 Power surge early", tonight: "vs Drew Rasmussen (1 ER in each of 2 starts)" },
+      { name: "Mike Trout", team: "LAA", opp: "vs ATL", streak: 3, avg: ".310", detail: "SEA pitched around him all series \u2022 Healthy start to 2026", tonight: "vs Pablo Lopez (2 ER in 11 IP \u2022 Low K rate tho)" }
     ];
 
-    const PAYOUTS = { 5: "1x (Break Even)", 6: "2x", 7: "5x", 8: "15x", 9: "50x \u{1F3C6}" };
+    function getTier(streak) {
+      if (streak >= 10) return TIERS[10];
+      return TIERS[streak] || TIERS[3];
+    }
 
-    function AroundTheHorn() {
-      const [screen, setScreen] = useState("splash");
-      const [currentInning, setCurrentInning] = useState(0);
-      const [picks, setPicks] = useState({});
-      const [selectedOption, setSelectedOption] = useState(null);
-      const [locked, setLocked] = useState(false);
-      const [animatingOut, setAnimatingOut] = useState(false);
-      const [results, setResults] = useState(null);
+    function FlameBar({ streak, max }) {
+      const pct = Math.min((streak / max) * 100, 100);
+      const tier = getTier(streak);
+      return (
+        <div style={{ width: "100%", height: 6, background: "#222", borderRadius: 3, overflow: "hidden" }}>
+          <div style={{ width: pct + "%", height: "100%", background: `linear-gradient(90deg, #f59e0b, ${tier.color})`, borderRadius: 3, transition: "width 0.5s ease" }} />
+        </div>
+      );
+    }
 
-      const inning = INNINGS[currentInning];
+    function StreakCard({ player, isExpanded, onToggle, onBet, bet }) {
+      const tier = getTier(player.streak);
+      const flames = player.streak >= 8 ? "\u{1F525}\u{1F525}\u{1F525}" : player.streak >= 6 ? "\u{1F525}\u{1F525}" : player.streak >= 4 ? "\u{1F525}" : "";
 
-      const lockPick = () => {
-        if (selectedOption === null) return;
-        setPicks(prev => ({ ...prev, [currentInning]: selectedOption }));
-        setLocked(true);
-      };
+      return (
+        <div style={{
+          background: "#141414", borderRadius: 14, border: "1px solid #222",
+          overflow: "hidden", marginBottom: 10,
+          boxShadow: bet ? tier.glow : "none",
+          transition: "all 0.3s ease"
+        }}>
+          <button onClick={onToggle} style={{
+            width: "100%", padding: "14px 16px", background: "transparent",
+            border: "none", cursor: "pointer", textAlign: "left"
+          }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <span style={{ fontSize: 16, fontWeight: 700, color: "#fff" }}>{player.name}</span>
+                <span style={{ fontSize: 11, fontWeight: 600, color: tier.color, background: tier.color + "20", padding: "2px 6px", borderRadius: 4 }}>{player.team}</span>
+              </div>
+              <span style={{ fontSize: 12, color: "#888" }}>{player.opp}</span>
+            </div>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                <span style={{ fontSize: 26, fontWeight: 800, color: tier.color }}>{player.streak}</span>
+                <span style={{ fontSize: 12, color: "#888", lineHeight: "1.2" }}>game<br/>streak</span>
+                <span style={{ fontSize: 14, marginLeft: 4 }}>{flames}</span>
+              </div>
+              <div style={{ textAlign: "right" }}>
+                <div style={{ fontSize: 11, color: "#666", textTransform: "uppercase", letterSpacing: 0.5 }}>{tier.label}</div>
+                <div style={{ fontSize: 20, fontWeight: 800, color: tier.color }}>{tier.mult}</div>
+              </div>
+            </div>
+            <FlameBar streak={player.streak} max={12} />
+          </button>
 
-      const nextInning = () => {
-        if (animatingOut) return;
-        if (currentInning < 8) {
-          setAnimatingOut(true);
-          setTimeout(() => {
-            setCurrentInning(prev => prev + 1);
-            setSelectedOption(null);
-            setLocked(false);
-            setAnimatingOut(false);
-          }, 300);
-        } else {
-          const correct = Math.floor(Math.random() * 5) + 5;
-          setResults(correct);
-          setScreen("results");
-        }
-      };
+          {isExpanded && (
+            <div style={{ padding: "0 16px 14px", borderTop: "1px solid #1a1a1a" }}>
+              <p style={{ fontSize: 12, color: "#999", lineHeight: "1.5", margin: "10px 0 4px" }}>{player.detail}</p>
+              <p style={{ fontSize: 12, color: "#777", margin: "0 0 12px" }}>{"\u{1F3AF}"} Tonight: {player.tonight}</p>
+              <div style={{ display: "flex", gap: 8 }}>
+                <button onClick={(e) => { e.stopPropagation(); onBet("yes"); }}
+                  style={{
+                    flex: 1, padding: "12px 0", borderRadius: 10, fontWeight: 700, fontSize: 14, cursor: "pointer",
+                    border: bet === "yes" ? "2px solid #22c55e" : "2px solid #333",
+                    background: bet === "yes" ? "rgba(34,197,94,0.12)" : "#1a1a1a",
+                    color: bet === "yes" ? "#22c55e" : "#fff"
+                  }}>
+                  {"\u{1F525}"} Keeps Rolling
+                </button>
+                <button onClick={(e) => { e.stopPropagation(); onBet("no"); }}
+                  style={{
+                    flex: 1, padding: "12px 0", borderRadius: 10, fontWeight: 700, fontSize: 14, cursor: "pointer",
+                    border: bet === "no" ? "2px solid #ef4444" : "2px solid #333",
+                    background: bet === "no" ? "rgba(239,68,68,0.1)" : "#1a1a1a",
+                    color: bet === "no" ? "#ef4444" : "#fff"
+                  }}>
+                  {"\u{1F9CA}"} Goes Cold
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    }
 
-      const reset = () => {
-        setScreen("splash");
-        setCurrentInning(0);
-        setPicks({});
-        setSelectedOption(null);
-        setLocked(false);
-        setResults(null);
-        setAnimatingOut(false);
-      };
+    function Heater() {
+      const [view, setView] = useState("splash");
+      const [expanded, setExpanded] = useState(null);
+      const [bets, setBets] = useState({});
+      const [filter, setFilter] = useState("all");
+      const [showConfirm, setShowConfirm] = useState(false);
 
-      if (screen === "splash") {
+      const betCount = Object.keys(bets).length;
+
+      const filteredStreaks = filter === "all" ? STREAKS :
+        filter === "hot" ? STREAKS.filter(s => s.streak >= 6) :
+        STREAKS.filter(s => s.streak < 6);
+
+      if (view === "splash") {
         return (
           <div style={styles.container}>
-            <div style={styles.splashContent}>
-              <div style={styles.diamondIcon}>
-                <svg width="120" height="120" viewBox="0 0 120 120">
-                  <g transform="translate(60,15)">
-                    <polygon points="0,0 45,40 0,80 -45,40" fill="none" stroke="#f59e0b" strokeWidth="2.5" />
-                    <circle cx="0" cy="0" r="6" fill="#f59e0b" />
-                    <circle cx="45" cy="40" r="6" fill="#f59e0b" />
-                    <circle cx="0" cy="80" r="6" fill="#f59e0b" />
-                    <circle cx="-45" cy="40" r="6" fill="#f59e0b" />
-                    <circle cx="0" cy="35" r="4" fill="#ef4444" opacity="0.9" />
-                  </g>
-                </svg>
-              </div>
-              <h1 style={styles.splashTitle}>Around the Horn</h1>
-              <p style={styles.splashSub}>9 Innings. 9 Picks. One Shot.</p>
-              <p style={{fontSize: 12, color: "#f59e0b", margin: "0 0 12px", fontWeight: 600}}>Tuesday, April 7 \u2022 15 Games</p>
-              <div style={styles.splashRules}>
-                <p style={styles.ruleText}>Work your way around the diamond \u2014 one inning at a time. Each inning is a different prop category. You can't see what's next until you lock in.</p>
-                <div style={styles.payoutPreview}>
-                  <div style={styles.payoutRow}><span style={styles.payoutLabel}>5/9</span><span style={styles.payoutVal}>1x</span></div>
-                  <div style={styles.payoutRow}><span style={styles.payoutLabel}>6/9</span><span style={styles.payoutVal}>2x</span></div>
-                  <div style={styles.payoutRow}><span style={styles.payoutLabel}>7/9</span><span style={styles.payoutVal}>5x</span></div>
-                  <div style={styles.payoutRow}><span style={styles.payoutLabel}>8/9</span><span style={styles.payoutVal}>15x</span></div>
-                  <div style={styles.payoutRow}><span style={{...styles.payoutLabel, color: "#f59e0b"}}>9/9</span><span style={{...styles.payoutVal, color: "#f59e0b"}}>50x \u{1F3C6}</span></div>
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", paddingTop: 40, gap: 10 }}>
+              <div style={{ fontSize: 64, lineHeight: 1 }}>{"\u{1F525}"}</div>
+              <h1 style={{ fontSize: 32, fontWeight: 800, margin: 0, color: "#fff" }}>Heater</h1>
+              <p style={{ fontSize: 15, color: "#999", margin: 0, fontWeight: 500 }}>Ride the Streak. Chase the Payout.</p>
+              <p style={{ fontSize: 12, color: "#f59e0b", margin: "4px 0 16px", fontWeight: 600 }}>Tuesday, April 7 {"\u2022"} 15 Games</p>
+
+              <div style={{ background: "#1a1a1a", borderRadius: 14, padding: "16px 20px", width: "100%", maxWidth: 340 }}>
+                <p style={{ fontSize: 13, color: "#aaa", lineHeight: "1.5", margin: "0 0 14px" }}>
+                  Pick players on active hitting streaks. If they get a hit tonight, the streak continues and you cash out at the multiplier. Longer streaks = bigger payouts.
+                </p>
+                <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                  {[
+                    { range: "3-4 games", label: "Warming Up", mult: "1.5-1.8x", color: "#f59e0b" },
+                    { range: "5-6 games", label: "Hot", mult: "2.2-2.8x", color: "#f97316" },
+                    { range: "7-8 games", label: "On Fire", mult: "3.5-4.5x", color: "#ef4444" },
+                    { range: "9-10+ games", label: "Scorching", mult: "6-8x+", color: "#dc2626" }
+                  ].map((t, i) => (
+                    <div key={i} style={{ display: "flex", justifyContent: "space-between", padding: "5px 0", alignItems: "center" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                        <span style={{ fontSize: 12, color: "#666", width: 70 }}>{t.range}</span>
+                        <span style={{ fontSize: 12, color: t.color, fontWeight: 600 }}>{t.label}</span>
+                      </div>
+                      <span style={{ fontSize: 13, color: "#fff", fontWeight: 700 }}>{t.mult}</span>
+                    </div>
+                  ))}
                 </div>
               </div>
-              <button style={styles.playBtn} onClick={() => setScreen("game")}>Play \u2014 $5 Entry</button>
+
+              <div style={{ background: "#1a1a1a", borderRadius: 14, padding: "14px 20px", width: "100%", maxWidth: 340, marginTop: 8 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+                  <span style={{ fontSize: 16 }}>{"\u{1F6E1}"}</span>
+                  <span style={{ fontSize: 14, fontWeight: 700, color: "#fff" }}>Streak Save</span>
+                </div>
+                <p style={{ fontSize: 12, color: "#888", lineHeight: "1.4", margin: 0 }}>
+                  Once per month, protect a streak that dies. Your guy went 0-for-4? Use your save and the streak lives on tomorrow.
+                </p>
+              </div>
+
+              <button onClick={() => setView("board")} style={{
+                marginTop: 20, background: "#f59e0b", color: "#000", border: "none",
+                borderRadius: 12, padding: "15px 0", fontSize: 16, fontWeight: 700,
+                cursor: "pointer", width: "100%", maxWidth: 340
+              }}>
+                View Today's Streaks
+              </button>
             </div>
           </div>
         );
       }
 
-      if (screen === "results") {
-        const correctSet = new Set();
-        while (correctSet.size < results) {
-          correctSet.add(Math.floor(Math.random() * 9));
-        }
+      if (view === "confirmed") {
         return (
           <div style={styles.container}>
-            <div style={styles.resultsContent}>
-              <h2 style={styles.resultsTitle}>
-                {results === 9 ? "\u{1F3C6} PERFECT GAME \u{1F3C6}" : results >= 7 ? "\u{1F525} Great Round!" : results >= 5 ? "Solid Night" : "Tough Break"}
-              </h2>
-              <div style={styles.scoreCircle}>
-                <span style={styles.scoreNum}>{results}</span>
-                <span style={styles.scoreOf}>/9</span>
-              </div>
-              {results >= 5 && (
-                <div style={styles.payoutBadge}>
-                  <span style={styles.payoutBadgeText}>{PAYOUTS[results]}</span>
-                </div>
-              )}
-              <div style={styles.resultsGrid}>
-                {INNINGS.map((inn, i) => {
-                  const hit = correctSet.has(i);
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", paddingTop: 60, gap: 16 }}>
+              <div style={{ fontSize: 56, lineHeight: 1 }}>{"\u{1F525}"}</div>
+              <h2 style={{ fontSize: 22, fontWeight: 800, margin: 0, textAlign: "center" }}>Bets Locked In!</h2>
+              <p style={{ fontSize: 14, color: "#999", textAlign: "center" }}>{betCount} streak{betCount > 1 ? "s" : ""} riding tonight</p>
+              <div style={{ width: "100%", maxWidth: 340, display: "flex", flexDirection: "column", gap: 6, marginTop: 8 }}>
+                {Object.entries(bets).map(([idx, pick]) => {
+                  const p = STREAKS[parseInt(idx)];
+                  const tier = getTier(p.streak);
                   return (
-                    <div key={i} style={{
-                      ...styles.resultInning,
-                      borderColor: hit ? "#22c55e" : "#ef4444",
-                      background: hit ? "rgba(34,197,94,0.1)" : "rgba(239,68,68,0.08)"
+                    <div key={idx} style={{
+                      display: "flex", justifyContent: "space-between", alignItems: "center",
+                      padding: "10px 14px", background: "#141414", borderRadius: 10, border: "1px solid #222"
                     }}>
-                      <span style={styles.resultEmoji}>{inn.emoji}</span>
-                      <span style={styles.resultCat}>{inn.category}</span>
-                      <span style={{ color: hit ? "#22c55e" : "#ef4444", fontWeight: 700, fontSize: 14 }}>
-                        {hit ? "\u2713" : "\u2717"}
-                      </span>
+                      <div>
+                        <span style={{ fontSize: 14, fontWeight: 700, color: "#fff" }}>{p.name}</span>
+                        <span style={{ fontSize: 12, color: "#666", marginLeft: 6 }}>{p.streak}-game streak</span>
+                      </div>
+                      <div style={{ textAlign: "right" }}>
+                        <span style={{ fontSize: 13, fontWeight: 700, color: pick === "yes" ? "#22c55e" : "#ef4444" }}>
+                          {pick === "yes" ? "Keeps Rolling" : "Goes Cold"}
+                        </span>
+                        <div style={{ fontSize: 12, color: tier.color, fontWeight: 700 }}>{tier.mult}</div>
+                      </div>
                     </div>
                   );
                 })}
               </div>
-              <button style={styles.playBtn} onClick={reset}>Play Again</button>
+              <p style={{ fontSize: 13, color: "#666", marginTop: 12, textAlign: "center" }}>Results update after tonight's games.</p>
+              <button onClick={() => { setView("splash"); setBets({}); setExpanded(null); }} style={{
+                marginTop: 16, background: "#333", color: "#fff", border: "none",
+                borderRadius: 12, padding: "14px 0", fontSize: 15, fontWeight: 700,
+                cursor: "pointer", width: "100%", maxWidth: 340
+              }}>
+                Back to Home
+              </button>
             </div>
           </div>
         );
@@ -224,157 +232,84 @@
 
       return (
         <div style={styles.container}>
-          <div style={styles.progressBar}>
-            {INNINGS.map((_, i) => (
-              <div key={i} style={{
-                ...styles.progressDot,
-                background: i < currentInning ? "#f59e0b" : i === currentInning ? "#fff" : "#333",
-                border: i === currentInning ? "2px solid #f59e0b" : "2px solid transparent",
-                transform: i === currentInning ? "scale(1.3)" : "scale(1)"
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "4px 0 12px" }}>
+            <div>
+              <h2 style={{ fontSize: 20, fontWeight: 800, margin: 0, color: "#fff" }}>{"\u{1F525}"} Heater</h2>
+              <p style={{ fontSize: 11, color: "#666", margin: "2px 0 0" }}>April 7 {"\u2022"} Active Hitting Streaks</p>
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+              <span style={{ fontSize: 12, color: "#888" }}>{"\u{1F6E1}"} 1 Save</span>
+            </div>
+          </div>
+
+          <div style={{ display: "flex", gap: 6, marginBottom: 14 }}>
+            {[
+              { key: "all", label: "All Streaks" },
+              { key: "hot", label: "\u{1F525} Hot (6+)" },
+              { key: "warm", label: "Warming Up" }
+            ].map(f => (
+              <button key={f.key} onClick={() => setFilter(f.key)} style={{
+                padding: "6px 12px", borderRadius: 8, fontSize: 12, fontWeight: 600, cursor: "pointer",
+                border: filter === f.key ? "1px solid #f59e0b" : "1px solid #333",
+                background: filter === f.key ? "rgba(245,158,11,0.1)" : "#1a1a1a",
+                color: filter === f.key ? "#f59e0b" : "#888"
               }}>
-                {i < currentInning && <span style={{fontSize: 8, color: "#000"}}>{"\u2713"}</span>}
-              </div>
+                {f.label}
+              </button>
             ))}
           </div>
 
-          <div style={{
-            ...styles.inningCard,
-            opacity: animatingOut ? 0 : 1,
-            transform: animatingOut ? "translateX(-40px)" : "translateX(0)",
-            transition: "all 0.3s ease"
-          }}>
-            <div style={styles.inningHeader}>
-              <span style={styles.inningNum}>Inning {inning.number}</span>
-              <span style={styles.inningCategory}>{inning.emoji} {inning.category}</span>
-            </div>
-            <p style={styles.inningDesc}>{inning.description}</p>
-            {(inning.game || inning.context) && (
-              <p style={styles.contextText}>
-                {[inning.game, inning.context].filter(Boolean).join(" \u2022 ")}
-              </p>
-            )}
+          {filteredStreaks.map((p, realIdx) => {
+            const origIdx = STREAKS.indexOf(p);
+            return (
+              <StreakCard
+                key={origIdx}
+                player={p}
+                isExpanded={expanded === origIdx}
+                onToggle={() => setExpanded(expanded === origIdx ? null : origIdx)}
+                bet={bets[origIdx]}
+                onBet={(pick) => {
+                  setBets(prev => {
+                    const next = { ...prev };
+                    if (next[origIdx] === pick) { delete next[origIdx]; }
+                    else { next[origIdx] = pick; }
+                    return next;
+                  });
+                }}
+              />
+            );
+          })}
 
-            <div style={styles.optionsWrap}>
-              {inning.type === "pick1of3" && inning.options.map((opt, i) => (
-                <button key={i} disabled={locked} onClick={() => setSelectedOption(i)}
-                  style={{
-                    ...styles.optionBtn,
-                    borderColor: selectedOption === i ? "#f59e0b" : "#333",
-                    background: selectedOption === i ? "rgba(245,158,11,0.12)" : "#1a1a1a",
-                    opacity: locked && selectedOption !== i ? 0.4 : 1
-                  }}>
-                  <div style={styles.optionTop}>
-                    <span style={styles.optionName}>{opt.name}</span>
-                    {opt.team && <span style={styles.optionTeam}>{opt.team}</span>}
-                  </div>
-                  <span style={styles.optionDetail}>{opt.detail}</span>
-                </button>
-              ))}
-
-              {inning.type === "overunder" && (
-                <div style={styles.ouWrap}>
-                  <p style={styles.ouLine}>Line: {inning.line}</p>
-                  <div style={styles.ouBtns}>
-                    <button disabled={locked} onClick={() => setSelectedOption("over")}
-                      style={{...styles.ouBtn, borderColor: selectedOption === "over" ? "#22c55e" : "#333", background: selectedOption === "over" ? "rgba(34,197,94,0.12)" : "#1a1a1a", opacity: locked && selectedOption !== "over" ? 0.4 : 1}}>
-                      <span style={{fontSize: 22}}>{"\u2B06\uFE0F"}</span>
-                      <span style={styles.ouLabel}>Over {inning.line}</span>
-                    </button>
-                    <button disabled={locked} onClick={() => setSelectedOption("under")}
-                      style={{...styles.ouBtn, borderColor: selectedOption === "under" ? "#ef4444" : "#333", background: selectedOption === "under" ? "rgba(239,68,68,0.1)" : "#1a1a1a", opacity: locked && selectedOption !== "under" ? 0.4 : 1}}>
-                      <span style={{fontSize: 22}}>{"\u2B07\uFE0F"}</span>
-                      <span style={styles.ouLabel}>Under {inning.line}</span>
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {inning.type === "yesno" && (
-                <div style={styles.ouWrap}>
-                  <div style={styles.ouBtns}>
-                    <button disabled={locked} onClick={() => setSelectedOption("yes")}
-                      style={{...styles.ouBtn, borderColor: selectedOption === "yes" ? "#22c55e" : "#333", background: selectedOption === "yes" ? "rgba(34,197,94,0.12)" : "#1a1a1a", opacity: locked && selectedOption !== "yes" ? 0.4 : 1}}>
-                      <span style={{fontSize: 22}}>{"\u2705"}</span>
-                      <span style={styles.ouLabel}>Yes</span>
-                    </button>
-                    <button disabled={locked} onClick={() => setSelectedOption("no")}
-                      style={{...styles.ouBtn, borderColor: selectedOption === "no" ? "#ef4444" : "#333", background: selectedOption === "no" ? "rgba(239,68,68,0.1)" : "#1a1a1a", opacity: locked && selectedOption !== "no" ? 0.4 : 1}}>
-                      <span style={{fontSize: 22}}>{"\u274C"}</span>
-                      <span style={styles.ouLabel}>No</span>
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-
-          <div style={styles.actionWrap}>
-            {!locked ? (
-              <button style={{...styles.lockBtn, opacity: selectedOption === null ? 0.4 : 1, cursor: selectedOption === null ? "default" : "pointer"}}
-                disabled={selectedOption === null} onClick={lockPick}>
-                Lock It In {"\u{1F512}"}
+          {betCount > 0 && (
+            <div style={{
+              position: "fixed", bottom: 0, left: 0, right: 0,
+              padding: "16px", background: "linear-gradient(transparent, #0d0d0d 30%)",
+              display: "flex", justifyContent: "center"
+            }}>
+              <button onClick={() => setView("confirmed")} style={{
+                background: "#f59e0b", color: "#000", border: "none", borderRadius: 12,
+                padding: "15px 0", fontSize: 16, fontWeight: 700, cursor: "pointer",
+                width: "100%", maxWidth: 400
+              }}>
+                Lock In {betCount} Pick{betCount > 1 ? "s" : ""} {"\u{1F512}"}
               </button>
-            ) : (
-              <button style={{...styles.nextBtn, opacity: animatingOut ? 0.6 : 1, cursor: animatingOut ? "default" : "pointer"}}
-                disabled={animatingOut} onClick={nextInning}>
-                {currentInning < 8 ? `Inning ${currentInning + 2} \u2192` : "See Results \u{1F3C6}"}
-              </button>
-            )}
-          </div>
+            </div>
+          )}
         </div>
       );
     }
 
     const styles = {
-      container: { minHeight: "100vh", background: "#0d0d0d", color: "#fff", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif", maxWidth: 430, margin: "0 auto", padding: "16px 16px 100px", position: "relative", overflowX: "hidden" },
-      splashContent: { display: "flex", flexDirection: "column", alignItems: "center", paddingTop: 40, gap: 8 },
-      diamondIcon: { marginBottom: 8 },
-      splashTitle: { fontSize: 32, fontWeight: 800, margin: 0, letterSpacing: "-0.5px" },
-      splashSub: { fontSize: 16, color: "#999", margin: "4px 0 4px", fontWeight: 500 },
-      splashRules: { background: "#1a1a1a", borderRadius: 14, padding: "18px 20px", width: "100%", maxWidth: 360 },
-      ruleText: { fontSize: 14, lineHeight: "1.5", color: "#bbb", margin: "0 0 16px" },
-      payoutPreview: { display: "flex", flexDirection: "column", gap: 6 },
-      payoutRow: { display: "flex", justifyContent: "space-between", padding: "4px 0" },
-      payoutLabel: { fontSize: 14, color: "#888", fontWeight: 600 },
-      payoutVal: { fontSize: 14, color: "#fff", fontWeight: 700 },
-      playBtn: { marginTop: 24, background: "#f59e0b", color: "#000", border: "none", borderRadius: 12, padding: "16px 48px", fontSize: 17, fontWeight: 700, cursor: "pointer", width: "100%", maxWidth: 360 },
-      progressBar: { display: "flex", justifyContent: "center", gap: 8, padding: "8px 0 20px", alignItems: "center" },
-      progressDot: { width: 20, height: 20, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", transition: "all 0.3s ease" },
-      inningCard: { background: "#141414", borderRadius: 16, padding: "20px 18px", border: "1px solid #222" },
-      inningHeader: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 },
-      inningNum: { fontSize: 13, color: "#666", fontWeight: 600, textTransform: "uppercase", letterSpacing: "1px" },
-      inningCategory: { fontSize: 16, fontWeight: 700, color: "#f59e0b" },
-      inningDesc: { fontSize: 17, fontWeight: 600, lineHeight: "1.4", margin: "0 0 8px", color: "#eee" },
-      contextText: { fontSize: 13, color: "#777", margin: "0 0 18px", lineHeight: "1.4" },
-      optionsWrap: { display: "flex", flexDirection: "column", gap: 10 },
-      optionBtn: { width: "100%", textAlign: "left", border: "2px solid #333", borderRadius: 12, padding: "14px 16px", cursor: "pointer", transition: "all 0.2s ease", display: "flex", flexDirection: "column", gap: 4 },
-      optionTop: { display: "flex", justifyContent: "space-between", alignItems: "center" },
-      optionName: { fontSize: 16, fontWeight: 700, color: "#fff" },
-      optionTeam: { fontSize: 13, fontWeight: 600, color: "#f59e0b", background: "rgba(245,158,11,0.15)", padding: "2px 8px", borderRadius: 6 },
-      optionDetail: { fontSize: 12, color: "#888", lineHeight: "1.3" },
-      ouWrap: { display: "flex", flexDirection: "column", gap: 12, alignItems: "center" },
-      ouLine: { fontSize: 28, fontWeight: 800, color: "#fff", margin: 0 },
-      ouBtns: { display: "flex", gap: 12, width: "100%" },
-      ouBtn: { flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 6, padding: "18px 12px", border: "2px solid #333", borderRadius: 12, cursor: "pointer", transition: "all 0.2s ease" },
-      ouLabel: { fontSize: 15, fontWeight: 700, color: "#fff" },
-      actionWrap: { position: "fixed", bottom: 0, left: 0, right: 0, padding: "16px", background: "linear-gradient(transparent, #0d0d0d 30%)", display: "flex", justifyContent: "center" },
-      lockBtn: { background: "#f59e0b", color: "#000", border: "none", borderRadius: 12, padding: "16px 0", fontSize: 17, fontWeight: 700, cursor: "pointer", width: "100%", maxWidth: 400 },
-      nextBtn: { background: "#22c55e", color: "#000", border: "none", borderRadius: 12, padding: "16px 0", fontSize: 17, fontWeight: 700, cursor: "pointer", width: "100%", maxWidth: 400 },
-      resultsContent: { display: "flex", flexDirection: "column", alignItems: "center", paddingTop: 30, gap: 16 },
-      resultsTitle: { fontSize: 24, fontWeight: 800, margin: 0, textAlign: "center" },
-      scoreCircle: { width: 100, height: 100, borderRadius: "50%", border: "3px solid #f59e0b", display: "flex", alignItems: "center", justifyContent: "center", gap: 2 },
-      scoreNum: { fontSize: 42, fontWeight: 800, color: "#f59e0b" },
-      scoreOf: { fontSize: 20, color: "#888", fontWeight: 600, marginTop: 10 },
-      payoutBadge: { background: "rgba(245,158,11,0.15)", borderRadius: 10, padding: "8px 20px" },
-      payoutBadgeText: { fontSize: 18, fontWeight: 700, color: "#f59e0b" },
-      resultsGrid: { width: "100%", maxWidth: 360, display: "flex", flexDirection: "column", gap: 6, marginTop: 8 },
-      resultInning: { display: "flex", alignItems: "center", gap: 10, padding: "10px 14px", borderRadius: 10, border: "1px solid" },
-      resultEmoji: { fontSize: 18 },
-      resultCat: { fontSize: 14, fontWeight: 600, color: "#ccc", flex: 1 }
+      container: {
+        minHeight: "100vh", background: "#0d0d0d", color: "#fff",
+        fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+        maxWidth: 430, margin: "0 auto", padding: "14px 16px 100px",
+        position: "relative", overflowX: "hidden"
+      }
     };
 
     const root = ReactDOM.createRoot(document.getElementById('root'));
-    root.render(<AroundTheHorn />);
+    root.render(<Heater />);
   </script>
 </body>
 </html>
